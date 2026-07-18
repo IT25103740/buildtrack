@@ -18,6 +18,10 @@
         <span th:text="${site.location} ?: ''"></span> · Project:
         <a th:href="@{|/projects/${site.project.id}|}" th:text="${site.project.name}"></a>
     </div>
+    <a class="btn btn-sm btn-outline-primary mb-3"
+       th:href="@{|/engineer/sites/${site.id}/stock|}">
+        <i class="bi bi-box-seam me-1"></i> Materials & Stock
+    </a>
 
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tasks">Tasks</a></li>

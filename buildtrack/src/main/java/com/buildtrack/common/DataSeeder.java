@@ -25,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     private final MilestoneRepository milestoneRepo;
     private final TaskRepository taskRepo;
     private final AttendanceRepository attendanceRepo;
+    private final com.buildtrack.material.repository.MaterialRepository materialRepo;
     private final PasswordEncoder encoder;
 
     @Override
@@ -126,5 +127,15 @@ public class DataSeeder implements CommandLineRunner {
             .date(LocalDate.now())
             .status(AttendanceStatus.PRESENT)
             .build());
+
+        // ---- Seed a few materials (only once) ----
+        materialRepo.save(com.buildtrack.material.entity.Material.builder()
+            .name("Cement (50kg bag)").unit("bag").reorderThreshold(50).build());
+        materialRepo.save(com.buildtrack.material.entity.Material.builder()
+            .name("Sand").unit("m3").reorderThreshold(10).build());
+        materialRepo.save(com.buildtrack.material.entity.Material.builder()
+            .name("Steel rebar (12mm)").unit("kg").reorderThreshold(500).build());
+        materialRepo.save(com.buildtrack.material.entity.Material.builder()
+            .name("Bricks").unit("piece").reorderThreshold(1000).build());
     }
 }
