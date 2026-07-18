@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>My Tasks · BuildTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container flex-grow-1 py-4">
+    <h3 class="fw-bold mb-3" style="color:#1E3A8A;">
+        <i class="bi bi-list-check me-1"></i> My Tasks
+    </h3>
+
+    <div th:if="${success}" class="alert alert-success py-2" th:text="${success}"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6" th:each="t : ${tasks}">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold mb-1" th:text="${t.title}"></h6>
+                        <span class="badge bg-secondary" th:text="${t.status}"></span>
+                    </div>
+                    <div class="text-muted small" th:text="${t.description}"></div>
+                    <div class="small mt-1">
+                        Site: <strong th:text="${t.site.name}"></strong> ·
+                        Due: <span th:text="${t.dueDate} ?: '—'"></span>
+                    </div>
+                    <div class="progress mt-2" style="height:8px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             th:style="'width:'+${t.progressPct}+'%'"></div>
+                    </div>
+
+                    <form th:action="@{|/worker/tasks/${t.id}/progress|}" method="post"
+                          class="row g-2 align-items-end mt-2">
+                        <div class="col-5">
+                            <input type="number" min="0" max="100" name="progress"
+                                   class="form-control form-control-sm" th:value="${t.progressPct}" />
+                        </div>
+                        <div class="col-5">
+                            <select name="status" class="form-select form-select-sm">
+                                <option th:each="s : ${statuses}" th:value="${s}"
+                                        th:selected="${s == t.status}" th:text="${s}"></option>
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-sm btn-primary w-100" style="background:#1E3A8A;border:none;">
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(tasks)}" class="col-12 text-muted">No tasks assigned yet.</div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

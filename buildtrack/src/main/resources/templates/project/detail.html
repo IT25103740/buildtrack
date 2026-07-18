@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${project.name} + ' · BuildTrack'">Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container flex-grow-1 py-4">
+
+    <div th:if="${success}" class="alert alert-success py-2" th:text="${success}"></div>
+
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h3 class="fw-bold mb-1" style="color:#1E3A8A;" th:text="${project.name}">Name</h3>
+            <div class="text-muted small" th:text="${project.description}"></div>
+            <span class="badge bg-secondary mt-2" th:text="${project.status}"></span>
+        </div>
+        <div class="text-end">
+            <a class="btn btn-outline-primary btn-sm"
+               th:href="@{|/projects/${project.id}/edit|}"><i class="bi bi-pencil"></i> Edit</a>
+            <form sec:authorize="hasRole('ADMIN')" method="post"
+                  th:action="@{|/projects/${project.id}/delete|}" class="d-inline"
+                  onsubmit="return confirm('Delete this project?');">
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-4 g-3">
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted small">Client</div>
+            <div class="fw-semibold" th:text="${project.client?.fullName} ?: '—'"></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted small">Project Manager</div>
+            <div class="fw-semibold" th:text="${project.projectManager?.fullName} ?: '—'"></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted small">Budget</div>
+            <div class="fw-semibold"
+                 th:text="${project.budget != null} ? 'LKR ' + ${#numbers.formatDecimal(project.budget,0,'COMMA',2,'POINT')} : '—'"></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="text-muted small">Timeline</div>
+            <div class="fw-semibold">
+                <span th:text="${project.startDate} ?: '—'"></span> →
+                <span th:text="${project.endDate} ?: '—'"></span>
+            </div>
+        </div></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mt-4">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#sites">Sites</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#milestones">Milestones</a></li>
+    </ul>
+
+    <div class="tab-content border border-top-0 p-3 bg-white">
+
+        <!-- Sites -->
+        <div class="tab-pane fade show active" id="sites">
+            <table class="table align-middle">
+                <thead><tr><th>Name</th><th>Location</th><th>Engineer</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <tr th:each="s : ${project.sites}">
+                        <td th:text="${s.name}">-</td>
+                        <td th:text="${s.location} ?: '—'"></td>
+                        <td th:text="${s.siteEngineer?.fullName} ?: '—'"></td>
+                        <td><span class="badge bg-info text-dark" th:text="${s.status}"></span></td>
+                        <td>
+                            <form method="post" th:action="@{|/projects/${project.id}/sites/${s.id}/delete|}"
+                                  onsubmit="return confirm('Delete site?');" class="d-inline">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(project.sites)}">
+                        <td colspan="5" class="text-center text-muted py-3">No sites yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <form th:action="@{|/projects/${project.id}/sites|}" th:object="${newSite}" method="post"
+                  class="row g-2 align-items-end mt-2">
+                <div class="col-md-3"><input th:field="*{name}" class="form-control" placeholder="Site name" required /></div>
+                <div class="col-md-3"><input th:field="*{location}" class="form-control" placeholder="Location" /></div>
+                <div class="col-md-3">
+                    <select name="engineerId" class="form-select">
+                        <option value="">— Assign engineer —</option>
+                        <option th:each="e : ${engineers}" th:value="${e.id}" th:text="${e.fullName}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select th:field="*{status}" class="form-select">
+                        <option th:each="s : ${siteStatuses}" th:value="${s}" th:text="${s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-1"><button class="btn btn-primary w-100" style="background:#1E3A8A;border:none;">Add</button></div>
+            </form>
+        </div>
+
+        <!-- Milestones -->
+        <div class="tab-pane fade" id="milestones">
+            <table class="table align-middle">
+                <thead><tr><th>Name</th><th>Due</th><th>Weight %</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <tr th:each="m : ${project.milestones}">
+                        <td th:text="${m.name}"></td>
+                        <td th:text="${m.dueDate} ?: '—'"></td>
+                        <td th:text="${m.weightPct} + '%'"></td>
+                        <td><span class="badge bg-warning text-dark" th:text="${m.status}"></span></td>
+                        <td>
+                            <form method="post" th:action="@{|/projects/${project.id}/milestones/${m.id}/delete|}"
+                                  onsubmit="return confirm('Delete milestone?');" class="d-inline">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(project.milestones)}">
+                        <td colspan="5" class="text-center text-muted py-3">No milestones yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <form th:action="@{|/projects/${project.id}/milestones|}" th:object="${newMilestone}" method="post"
+                  class="row g-2 align-items-end mt-2">
+                <div class="col-md-4"><input th:field="*{name}" class="form-control" placeholder="Milestone name" required /></div>
+                <div class="col-md-3"><input type="date" th:field="*{dueDate}" class="form-control" /></div>
+                <div class="col-md-2"><input type="number" min="0" max="100" th:field="*{weightPct}" class="form-control" placeholder="% weight" /></div>
+                <div class="col-md-2">
+                    <select th:field="*{status}" class="form-select">
+                        <option th:each="s : ${milestoneStatuses}" th:value="${s}" th:text="${s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-1"><button class="btn btn-primary w-100" style="background:#1E3A8A;border:none;">Add</button></div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
