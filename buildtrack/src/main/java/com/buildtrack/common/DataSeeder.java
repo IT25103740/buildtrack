@@ -26,6 +26,7 @@ public class DataSeeder implements CommandLineRunner {
     private final TaskRepository taskRepo;
     private final AttendanceRepository attendanceRepo;
     private final com.buildtrack.material.repository.MaterialRepository materialRepo;
+    private final com.buildtrack.supplier.repository.SupplierRepository supplierRepo;
     private final PasswordEncoder encoder;
 
     @Override
@@ -137,5 +138,16 @@ public class DataSeeder implements CommandLineRunner {
             .name("Steel rebar (12mm)").unit("kg").reorderThreshold(500).build());
         materialRepo.save(com.buildtrack.material.entity.Material.builder()
             .name("Bricks").unit("piece").reorderThreshold(1000).build());
+
+        User supplierUser = userRepo.findByEmailIgnoreCase("supplier@buildtrack.local").orElseThrow();
+        if (supplierRepo.count() == 0) {
+            supplierRepo.save(com.buildtrack.supplier.entity.Supplier.builder()
+                .name("ABC Suppliers (Pvt) Ltd")
+                .contactEmail("supplier@buildtrack.local")
+                .phone("+94 77 123 4567")
+                .address("No. 15, Peradeniya Road, Kandy")
+                .user(supplierUser)
+                .build());
+        }
     }
 }
